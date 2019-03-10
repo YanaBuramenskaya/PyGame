@@ -1,5 +1,6 @@
 import pygame
 import os
+import random
 
 
 class Board:
@@ -75,6 +76,21 @@ class Bird(pygame.sprite.Sprite):
             self.image = self.images[1]
 
 
+class Semki(pygame.sprite.Sprite):
+    image = pygame.transform.scale(load_image("food.png"), (40, 40))
+
+    def __init__(self, group):
+        super().__init__(group)
+        self.image = Semki.image
+        self.rect = self.image.get_rect()
+        self.rect.x = random.randrange(w)
+        self.rect.y = random.randrange(h)
+
+    def update(self):
+        self.rect = self.rect.move(random.randrange(3) - 1,
+                                   random.randrange(3) - 1)
+
+
 pygame.init()
 
 size = w, h = 400, 400
@@ -83,8 +99,12 @@ running = True
 
 # bird1 = pygame.transform.scale(bird1, (90, 70))
 
-all_sprites = pygame.sprite.Group()
-Bird(all_sprites)
+sprite_bird = pygame.sprite.Group()
+Bird(sprite_bird)
+
+sprite_foods = pygame.sprite.Group()
+for i in range(5):
+    Semki(sprite_foods)
 
 fps = 10  # количество кадров в секунду
 clock = pygame.time.Clock()
@@ -98,33 +118,35 @@ while running:  # главный игровой цикл
             running = False
         if event.type == pygame.KEYDOWN:
             if event.key == pygame.K_UP:
-                for sprite in all_sprites:
+                for sprite in sprite_bird:
                     sprite.fly(0, -5)
             if event.key == pygame.K_DOWN:
-                for sprite in all_sprites:
+                for sprite in sprite_bird:
                     sprite.fly(0, 5)
             if event.key == pygame.K_LEFT:
-                for sprite in all_sprites:
+                for sprite in sprite_bird:
                     sprite.fly(-5, 0)
             if event.key == pygame.K_RIGHT:
-                for sprite in all_sprites:
+                for sprite in sprite_bird:
                     sprite.fly(5, 0)
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_UP:
-                for sprite in all_sprites:
+                for sprite in sprite_bird:
                     sprite.fly(0, 5)
             if event.key == pygame.K_DOWN:
-                for sprite in all_sprites:
+                for sprite in sprite_bird:
                     sprite.fly(0, -5)
             if event.key == pygame.K_LEFT:
-                for sprite in all_sprites:
+                for sprite in sprite_bird:
                     sprite.fly(5, 0)
             if event.key == pygame.K_RIGHT:
-                for sprite in all_sprites:
+                for sprite in sprite_bird:
                     sprite.fly(-5, 0)
+    sprite_foods.draw(screen)
+    sprite_foods.update()
     board.render()
-    all_sprites.draw(screen)
-    all_sprites.update()
+    sprite_bird.draw(screen)
+    sprite_bird.update()
     clock.tick(fps)
     pygame.display.flip()
     # временная задержка
