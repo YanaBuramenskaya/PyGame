@@ -1,5 +1,4 @@
 import pygame
-import os
 import random
 
 
@@ -52,10 +51,17 @@ class Bird(pygame.sprite.Sprite):
     frame3 = pygame.transform.scale(load_image("bird3.png"), (90, 70))
     frame4 = pygame.transform.scale(load_image("bird4.png"), (90, 70))
 
+    frame1_left = pygame.transform.scale(load_image("bird1_left.png"), (90, 70))
+    frame2_left = pygame.transform.scale(load_image("bird2_left.png"), (90, 70))
+    frame3_left = pygame.transform.scale(load_image("bird3_left.png"), (90, 70))
+    frame4_left = pygame.transform.scale(load_image("bird4_left.png"), (90, 70))
+
     def __init__(self, group):
         super().__init__(group)
         self.count = 0
-        self.images = [Bird.frame1, Bird.frame2, Bird.frame3, Bird.frame4]
+        self.frames_right = [Bird.frame1, Bird.frame2, Bird.frame3, Bird.frame4]
+        self.frames_left = [Bird.frame1_left, Bird.frame2_left, Bird.frame3_left, Bird.frame4_left]
+        self.images = self.frames_right
         self.image = self.images[self.count % len(self.images)]
         self.rect = self.image.get_rect()
         self.rect.x = 5
@@ -63,9 +69,15 @@ class Bird(pygame.sprite.Sprite):
         self.up_x = 0
         self.up_y = 0
 
-    def fly(self, up_x, up_y):
+    def fly(self, up_x, up_y, swap_fremes_flag=0):
         self.up_x += up_x
         self.up_y += up_y
+        if not swap_fremes_flag:
+            return
+        if up_x < 0:
+            self.images = self.frames_left
+        if up_x > 0:
+            self.images = self.frames_right
 
     def update(self):
         self.rect = self.rect.move(self.up_x, self.up_y)
@@ -125,10 +137,10 @@ while running:  # главный игровой цикл
                     sprite.fly(0, 5)
             if event.key == pygame.K_LEFT:
                 for sprite in sprite_bird:
-                    sprite.fly(-5, 0)
+                    sprite.fly(-5, 0, 1)
             if event.key == pygame.K_RIGHT:
                 for sprite in sprite_bird:
-                    sprite.fly(5, 0)
+                    sprite.fly(5, 0, 1)
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_UP:
                 for sprite in sprite_bird:
