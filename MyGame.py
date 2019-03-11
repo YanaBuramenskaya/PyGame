@@ -47,7 +47,6 @@ class Bird(pygame.sprite.Sprite):
     def get_pos(self):
         return self.rect
 
-
     def update(self):
         if w - 90 >= self.rect.x + self.up_x >= 0 and h - 60 >= self.rect.y + self.up_y >= -10:
             self.rect = self.rect.move(self.up_x, self.up_y)
@@ -68,6 +67,27 @@ class Semki(pygame.sprite.Sprite):
     def __init__(self, group):
         super().__init__(group)
         self.image = Semki.image
+        self.rect = self.image.get_rect()
+        self.rect.x = random.randrange(w)
+        self.rect.y = random.randrange(h)
+        self.up_x = 0
+        self.up_y = 0
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def world_is_running(self, up_x, up_y):
+        self.up_x += up_x
+        self.up_y += up_y
+
+    def update(self):
+        self.rect = self.rect.move(self.up_x, self.up_y)
+
+
+class Stick(pygame.sprite.Sprite):
+    image = pygame.transform.scale(load_image("stick.png"), (40, 40))
+
+    def __init__(self, group):
+        super().__init__(group)
+        self.image = Stick.image
         self.rect = self.image.get_rect()
         self.rect.x = random.randrange(w)
         self.rect.y = random.randrange(h)
@@ -162,6 +182,8 @@ class Nest(pygame.sprite.Sprite):
 def change_world(x, y):
     for sprite in sprite_foods:
         sprite.world_is_running(x, y)
+    for sprite in sprite_sticks:
+        sprite.world_is_running(x, y)
     for sprite in sprite_ground:
         sprite.world_is_running(x, y)
     for sprite in sprite_nest:
@@ -184,6 +206,10 @@ Bird(sprite_bird)
 sprite_foods = pygame.sprite.Group()
 for i in range(5):
     Semki(sprite_foods)
+
+sprite_sticks = pygame.sprite.Group()
+for i in range(5):
+    Stick(sprite_sticks)
 
 sprite_ground = pygame.sprite.Group()
 BackGround(sprite_ground)
@@ -258,6 +284,9 @@ while running:  # главный игровой цикл
 
     sprite_foods.draw(screen)
     sprite_foods.update()
+
+    sprite_sticks.draw(screen)
+    sprite_sticks.update()
 
     statistic.render()
 
