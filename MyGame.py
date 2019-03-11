@@ -1,6 +1,8 @@
 import pygame
 import random
 
+size = w, h = 400, 400
+
 
 class Board:
     # создание поля
@@ -110,14 +112,14 @@ class Semki(pygame.sprite.Sprite):
 
 
 class BackGround(pygame.sprite.Sprite):
-    image = pygame.transform.scale(load_image("world.jpg"), (100, 100))
+    image = pygame.transform.scale(load_image("world.jpg"), (w * 3, h * 3))
 
     def __init__(self, group):
         super().__init__(group)
-        self.image = Semki.image
+        self.image = BackGround.image
         self.rect = self.image.get_rect()
-        self.rect.x = 0
-        self.rect.y = 0
+        self.rect.x = -400
+        self.rect.y = -400
         self.up_x = 0
         self.up_y = 0
 
@@ -215,10 +217,10 @@ while running:  # главный игровой цикл
                     sprite.world_is_running(3, 0)
                 for sprite in sprite_ground:
                     sprite.world_is_running(3, 0)
-    sprite_foods.draw(screen)
-    sprite_foods.update()
     sprite_ground.draw(screen)
     sprite_ground.update()
+    sprite_foods.draw(screen)
+    sprite_foods.update()
     board.render()
     sprite_bird.draw(screen)
     sprite_bird.update()
