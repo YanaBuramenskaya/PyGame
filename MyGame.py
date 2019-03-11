@@ -97,10 +97,15 @@ class Semki(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.x = random.randrange(w)
         self.rect.y = random.randrange(h)
+        self.up_x = 0
+        self.up_y = 0
+
+    def world_is_running(self, up_x, up_y):
+        self.up_x += up_x
+        self.up_y += up_y
 
     def update(self):
-        self.rect = self.rect.move(random.randrange(3) - 1,
-                                   random.randrange(3) - 1)
+        self.rect = self.rect.move(self.up_x, self.up_y)
 
 
 pygame.init()
@@ -132,28 +137,44 @@ while running:  # главный игровой цикл
             if event.key == pygame.K_UP:
                 for sprite in sprite_bird:
                     sprite.fly(0, -5)
+                for sprite in sprite_foods:
+                    sprite.world_is_running(0, 3)
             if event.key == pygame.K_DOWN:
                 for sprite in sprite_bird:
                     sprite.fly(0, 5)
+                for sprite in sprite_foods:
+                    sprite.world_is_running(0, -3)
             if event.key == pygame.K_LEFT:
                 for sprite in sprite_bird:
                     sprite.fly(-5, 0, 1)
+                for sprite in sprite_foods:
+                    sprite.world_is_running(3, 0)
             if event.key == pygame.K_RIGHT:
                 for sprite in sprite_bird:
                     sprite.fly(5, 0, 1)
+                for sprite in sprite_foods:
+                    sprite.world_is_running(-3, 0)
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_UP:
                 for sprite in sprite_bird:
                     sprite.fly(0, 5)
+                for sprite in sprite_foods:
+                    sprite.world_is_running(0, -3)
             if event.key == pygame.K_DOWN:
                 for sprite in sprite_bird:
                     sprite.fly(0, -5)
+                for sprite in sprite_foods:
+                    sprite.world_is_running(0, 3)
             if event.key == pygame.K_LEFT:
                 for sprite in sprite_bird:
                     sprite.fly(5, 0)
+                for sprite in sprite_foods:
+                    sprite.world_is_running(-3, 0)
             if event.key == pygame.K_RIGHT:
                 for sprite in sprite_bird:
                     sprite.fly(-5, 0)
+                for sprite in sprite_foods:
+                    sprite.world_is_running(3, 0)
     sprite_foods.draw(screen)
     sprite_foods.update()
     board.render()
