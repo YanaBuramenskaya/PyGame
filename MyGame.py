@@ -4,44 +4,6 @@ import random
 size = w, h = 400, 400
 
 
-class Board:
-    # создание поля
-    def __init__(self, width, height):
-        self.width = width
-        self.height = height
-        self.board = [[0] * width for _ in range(height)]
-        # значения по умолчанию
-        self.left = 10
-        self.top = 10
-        self.cell_size = 30
-
-    # настройка внешнего вида
-
-    def set_view(self, left, top, cell_size):
-        self.left = left
-        self.top = top
-        self.cell_size = cell_size
-
-    # отрисовка поля
-
-    def render(self):
-        for i in range(self.width):
-            for j in range(self.height):
-                pygame.draw.rect(screen, pygame.Color("black"), pygame.Rect(self.left + i * self.cell_size,
-                                                                            self.top + j * self.cell_size,
-
-                                                                            self.cell_size, self.cell_size), 1)
-
-    def get_cell(self, mouse_pos):
-        for i in range(self.height):
-            for j in range(self.width):
-                if self.left + j * self.cell_size <= mouse_pos[0] < self.left + (
-                        j + 1) * self.cell_size and self.top + i * self.cell_size <= mouse_pos[1] < self.top + (
-                        i + 1) * self.cell_size:
-                    return (i, j)
-        return None
-
-
 def load_image(filename):
     filename = "data/" + filename
     return pygame.image.load(filename)
@@ -70,6 +32,7 @@ class Bird(pygame.sprite.Sprite):
         self.rect.y = 5
         self.up_x = 0
         self.up_y = 0
+        self.mask = pygame.mask.from_surface(self.image)
 
     def fly(self, up_x, up_y, swap_fremes_flag=0):
         self.up_x += up_x
@@ -102,6 +65,7 @@ class Semki(pygame.sprite.Sprite):
         self.rect.y = random.randrange(h)
         self.up_x = 0
         self.up_y = 0
+        self.mask = pygame.mask.from_surface(self.image)
 
     def world_is_running(self, up_x, up_y):
         self.up_x += up_x
@@ -131,7 +95,29 @@ class BackGround(pygame.sprite.Sprite):
         self.rect = self.rect.move(self.up_x, self.up_y)
 
 
+class Statistic:
+
+    def __init__(self):
+        self.health = 80
+        self.hungry = 80
+
+    def render(self):
+        pygame.draw.rect(screen, pygame.Color("red"), pygame.Rect(10, 10, 80, 15), 3)
+        pygame.draw.rect(screen, pygame.Color("red"), pygame.Rect(10, 10, self.health, 15), 0)
+        font = pygame.font.Font(None, 20)
+        text = font.render('health', True, pygame.Color("white"))
+        screen.blit(text, [10, 10])
+
+        pygame.draw.rect(screen, pygame.Color("blue"), pygame.Rect(10, 30, 80, 15), 3)
+        pygame.draw.rect(screen, pygame.Color("blue"), pygame.Rect(10, 30, self.hungry, 15), 0)
+        font = pygame.font.Font(None, 20)
+        text = font.render('hungry', True, pygame.Color("white"))
+        screen.blit(text, [10, 30])
+
+
 pygame.init()
+
+egg_flag = 1
 
 size = w, h = 400, 400
 screen = pygame.display.set_mode(size)
@@ -149,10 +135,10 @@ for i in range(5):
 sprite_ground = pygame.sprite.Group()
 BackGround(sprite_ground)
 
+statistic = Statistic()
+
 fps = 10  # количество кадров в секунду
 clock = pygame.time.Clock()
-
-board = Board(10, 10)
 
 while running:  # главный игровой цикл
     screen.fill(pygame.Color("white"))
@@ -217,13 +203,18 @@ while running:  # главный игровой цикл
                     sprite.world_is_running(3, 0)
                 for sprite in sprite_ground:
                     sprite.world_is_running(3, 0)
+
     sprite_ground.draw(screen)
     sprite_ground.update()
+
     sprite_foods.draw(screen)
     sprite_foods.update()
-    board.render()
+
+    statistic.render()
+
     sprite_bird.draw(screen)
     sprite_bird.update()
+
     clock.tick(fps)
     pygame.display.flip()
     # временная задержка
