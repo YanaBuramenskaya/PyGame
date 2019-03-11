@@ -80,7 +80,8 @@ class Bird(pygame.sprite.Sprite):
             self.images = self.frames_right
 
     def update(self):
-        self.rect = self.rect.move(self.up_x, self.up_y)
+        if w - 90 >= self.rect.x + self.up_x >= 0 and h - 60 >= self.rect.y + self.up_y >= -10:
+            self.rect = self.rect.move(self.up_x, self.up_y)
         if self.up_y != 0 or self.up_x != 0:
             self.image = self.images[self.count % len(self.images)]
             self.count += 1
@@ -108,6 +109,26 @@ class Semki(pygame.sprite.Sprite):
         self.rect = self.rect.move(self.up_x, self.up_y)
 
 
+class BackGround(pygame.sprite.Sprite):
+    image = pygame.transform.scale(load_image("world.jpg"), (100, 100))
+
+    def __init__(self, group):
+        super().__init__(group)
+        self.image = Semki.image
+        self.rect = self.image.get_rect()
+        self.rect.x = 0
+        self.rect.y = 0
+        self.up_x = 0
+        self.up_y = 0
+
+    def world_is_running(self, up_x, up_y):
+        self.up_x += up_x
+        self.up_y += up_y
+
+    def update(self):
+        self.rect = self.rect.move(self.up_x, self.up_y)
+
+
 pygame.init()
 
 size = w, h = 400, 400
@@ -122,6 +143,9 @@ Bird(sprite_bird)
 sprite_foods = pygame.sprite.Group()
 for i in range(5):
     Semki(sprite_foods)
+
+sprite_ground = pygame.sprite.Group()
+BackGround(sprite_ground)
 
 fps = 10  # количество кадров в секунду
 clock = pygame.time.Clock()
@@ -139,20 +163,28 @@ while running:  # главный игровой цикл
                     sprite.fly(0, -5)
                 for sprite in sprite_foods:
                     sprite.world_is_running(0, 3)
+                for sprite in sprite_ground:
+                    sprite.world_is_running(0, 3)
             if event.key == pygame.K_DOWN:
                 for sprite in sprite_bird:
                     sprite.fly(0, 5)
                 for sprite in sprite_foods:
+                    sprite.world_is_running(0, -3)
+                for sprite in sprite_ground:
                     sprite.world_is_running(0, -3)
             if event.key == pygame.K_LEFT:
                 for sprite in sprite_bird:
                     sprite.fly(-5, 0, 1)
                 for sprite in sprite_foods:
                     sprite.world_is_running(3, 0)
+                for sprite in sprite_ground:
+                    sprite.world_is_running(3, 0)
             if event.key == pygame.K_RIGHT:
                 for sprite in sprite_bird:
                     sprite.fly(5, 0, 1)
                 for sprite in sprite_foods:
+                    sprite.world_is_running(-3, 0)
+                for sprite in sprite_ground:
                     sprite.world_is_running(-3, 0)
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_UP:
@@ -160,23 +192,33 @@ while running:  # главный игровой цикл
                     sprite.fly(0, 5)
                 for sprite in sprite_foods:
                     sprite.world_is_running(0, -3)
+                for sprite in sprite_ground:
+                    sprite.world_is_running(0, -3)
             if event.key == pygame.K_DOWN:
                 for sprite in sprite_bird:
                     sprite.fly(0, -5)
                 for sprite in sprite_foods:
+                    sprite.world_is_running(0, 3)
+                for sprite in sprite_ground:
                     sprite.world_is_running(0, 3)
             if event.key == pygame.K_LEFT:
                 for sprite in sprite_bird:
                     sprite.fly(5, 0)
                 for sprite in sprite_foods:
                     sprite.world_is_running(-3, 0)
+                for sprite in sprite_ground:
+                    sprite.world_is_running(-3, 0)
             if event.key == pygame.K_RIGHT:
                 for sprite in sprite_bird:
                     sprite.fly(-5, 0)
                 for sprite in sprite_foods:
                     sprite.world_is_running(3, 0)
+                for sprite in sprite_ground:
+                    sprite.world_is_running(3, 0)
     sprite_foods.draw(screen)
     sprite_foods.update()
+    sprite_ground.draw(screen)
+    sprite_ground.update()
     board.render()
     sprite_bird.draw(screen)
     sprite_bird.update()
