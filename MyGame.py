@@ -44,6 +44,10 @@ class Bird(pygame.sprite.Sprite):
         if up_x > 0:
             self.images = self.frames_right
 
+    def get_pos(self):
+        return self.rect
+
+
     def update(self):
         if w - 90 >= self.rect.x + self.up_x >= 0 and h - 60 >= self.rect.y + self.up_y >= -10:
             self.rect = self.rect.move(self.up_x, self.up_y)
@@ -52,6 +56,10 @@ class Bird(pygame.sprite.Sprite):
             self.count += 1
         else:
             self.image = self.images[1]
+        for semka in sprite_foods:
+            if pygame.sprite.collide_mask(self, semka):
+                sprite_foods.remove(semka)
+                statistic.eating(10)
 
 
 class Semki(pygame.sprite.Sprite):
@@ -98,8 +106,8 @@ class BackGround(pygame.sprite.Sprite):
 class Statistic:
 
     def __init__(self):
-        self.health = 80
-        self.hungry = 80
+        self.health = 40
+        self.hungry = 40
 
     def render(self):
         pygame.draw.rect(screen, pygame.Color("red"), pygame.Rect(10, 10, 80, 15), 3)
@@ -113,6 +121,51 @@ class Statistic:
         font = pygame.font.Font(None, 20)
         text = font.render('hungry', True, pygame.Color("white"))
         screen.blit(text, [10, 30])
+
+    def eating(self, food_value):
+        if self.hungry + food_value >= 80:
+            self.hungry = 80
+        else:
+            self.hungry += food_value
+
+    def less_static(self):
+        if self.hungry > 0:
+            self.hungry -= 10
+        else:
+            self.health -= 10
+
+
+class Nest(pygame.sprite.Sprite):
+    image = pygame.transform.scale(load_image("nest.png"), (70, 70))
+
+    def __init__(self, group):
+        super().__init__(group)
+        self.image = Nest.image
+        self.rect = self.image.get_rect()
+        self.rect.x = 0
+        self.rect.y = 0
+        self.up_x = 0
+        self.up_y = 0
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def world_is_running(self, up_x, up_y):
+        self.up_x += up_x
+        self.up_y += up_y
+
+    def update(self):
+        self.rect = self.rect.move(self.up_x, self.up_y)
+
+    def set_nest(self, position):
+        self.rect = position
+
+
+def change_world(x, y):
+    for sprite in sprite_foods:
+        sprite.world_is_running(x, y)
+    for sprite in sprite_ground:
+        sprite.world_is_running(x, y)
+    for sprite in sprite_nest:
+        sprite.world_is_running(x, y)
 
 
 pygame.init()
@@ -135,10 +188,18 @@ for i in range(5):
 sprite_ground = pygame.sprite.Group()
 BackGround(sprite_ground)
 
+sprite_nest = pygame.sprite.Group()
+Nest(sprite_nest)
+
 statistic = Statistic()
 
 fps = 10  # количество кадров в секунду
 clock = pygame.time.Clock()
+
+time = 0
+
+we_have_egg_flag = 0
+we_have_nest_flag = 0
 
 while running:  # главный игровой цикл
     screen.fill(pygame.Color("white"))
@@ -149,63 +210,51 @@ while running:  # главный игровой цикл
             if event.key == pygame.K_UP:
                 for sprite in sprite_bird:
                     sprite.fly(0, -5)
-                for sprite in sprite_foods:
-                    sprite.world_is_running(0, 3)
-                for sprite in sprite_ground:
-                    sprite.world_is_running(0, 3)
+                change_world(0, 3)
             if event.key == pygame.K_DOWN:
                 for sprite in sprite_bird:
                     sprite.fly(0, 5)
-                for sprite in sprite_foods:
-                    sprite.world_is_running(0, -3)
-                for sprite in sprite_ground:
-                    sprite.world_is_running(0, -3)
+                change_world(0, -3)
             if event.key == pygame.K_LEFT:
                 for sprite in sprite_bird:
                     sprite.fly(-5, 0, 1)
-                for sprite in sprite_foods:
-                    sprite.world_is_running(3, 0)
-                for sprite in sprite_ground:
-                    sprite.world_is_running(3, 0)
+                change_world(3, 0)
             if event.key == pygame.K_RIGHT:
                 for sprite in sprite_bird:
                     sprite.fly(5, 0, 1)
-                for sprite in sprite_foods:
-                    sprite.world_is_running(-3, 0)
-                for sprite in sprite_ground:
-                    sprite.world_is_running(-3, 0)
+                change_world(-3, 0)
         if event.type == pygame.KEYUP:
             if event.key == pygame.K_UP:
                 for sprite in sprite_bird:
                     sprite.fly(0, 5)
-                for sprite in sprite_foods:
-                    sprite.world_is_running(0, -3)
-                for sprite in sprite_ground:
-                    sprite.world_is_running(0, -3)
+                change_world(0, -3)
             if event.key == pygame.K_DOWN:
                 for sprite in sprite_bird:
                     sprite.fly(0, -5)
-                for sprite in sprite_foods:
-                    sprite.world_is_running(0, 3)
-                for sprite in sprite_ground:
-                    sprite.world_is_running(0, 3)
+                change_world(0, 3)
             if event.key == pygame.K_LEFT:
                 for sprite in sprite_bird:
                     sprite.fly(5, 0)
-                for sprite in sprite_foods:
-                    sprite.world_is_running(-3, 0)
-                for sprite in sprite_ground:
-                    sprite.world_is_running(-3, 0)
+                change_world(-3, 0)
             if event.key == pygame.K_RIGHT:
                 for sprite in sprite_bird:
                     sprite.fly(-5, 0)
-                for sprite in sprite_foods:
-                    sprite.world_is_running(3, 0)
-                for sprite in sprite_ground:
-                    sprite.world_is_running(3, 0)
+                change_world(3, 0)
+            if event.key == pygame.K_SPACE:
+                if we_have_nest_flag:
+                    we_have_egg_flag = 1
+                else:
+                    we_have_nest_flag = 1
+                    for sprite in sprite_nest:
+                        for sprite_b in sprite_bird:
+                            sprite.set_nest(sprite_b.get_pos())
 
     sprite_ground.draw(screen)
     sprite_ground.update()
+
+    if we_have_nest_flag:
+        sprite_nest.draw(screen)
+        sprite_nest.update()
 
     sprite_foods.draw(screen)
     sprite_foods.update()
@@ -215,6 +264,10 @@ while running:  # главный игровой цикл
     sprite_bird.draw(screen)
     sprite_bird.update()
 
+    if time % 150 == 0:
+        statistic.less_static()
+
+    time += 1
     clock.tick(fps)
     pygame.display.flip()
     # временная задержка
