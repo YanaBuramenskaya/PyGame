@@ -428,13 +428,15 @@ while running:  # главный игровой цикл
         coords = ground.get_pos()
 
     if not (-800 < coords[0] < 0 and -800 < coords[1] < 0):
-        if coords[0] < -800:
+        new_x = coords[0]
+        new_y = coords[1]
+        if coords[0] <= -800:
             new_x = -788
-        else:
+        if coords[0] >= 0:
             new_x = -2
-        if coords[1] < -800:
+        if coords[1] <= -800:
             new_y = -788
-        else:
+        if coords[1] >= 0:
             new_y = -2
         for ground in sprite_ground:
             ground.set_pos(new_x, new_y)
