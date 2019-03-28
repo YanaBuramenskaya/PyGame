@@ -2,6 +2,8 @@ import pygame
 import random
 
 size = w, h = 400, 400
+we_have_egg_flag = 0
+we_have_nest_flag = 0
 
 
 def load_image(filename):
@@ -237,6 +239,15 @@ class Nest(pygame.sprite.Sprite):
         self.rect.x = position[0]
         self.rect.y = position[1]
 
+    def get_pos(self):
+        return [self.rect.x, self.rect.y]
+
+    def bird_on_egg(self):
+        for bird in sprite_bird:
+            if pygame.sprite.collide_mask(self, bird):
+                return 1
+        return 0
+
 
 def new_drop(pos, direction):
     if random.randint(0, 1):
@@ -279,16 +290,49 @@ class Camera:
         self.dy = -d[1]
 
 
+class Egg(pygame.sprite.Sprite):
+    image = pygame.transform.scale(load_image("nest_with_eggs.png"), (70, 70))
+
+    def __init__(self, group):
+        super().__init__(group)
+        self.image = Egg.image
+        self.rect = self.image.get_rect()
+        self.rect.x = 0
+        self.rect.y = 0
+        self.up_x = 0
+        self.up_y = 0
+        self.egg_without_mama = 0
+        self.egg_is_growing = 0
+        self.egg_flag = 0
+        self.mask = pygame.mask.from_surface(self.image)
+
+    def set_egg(self, position):
+        self.rect.x = position[0]
+        self.rect.y = position[1]
+        self.egg_flag = 1
+
+    def grow(self):
+        self.egg_is_growing += 1
+        for bird in sprite_bird:
+            if not pygame.sprite.collide_mask(self, bird):
+                self.egg_without_mama += 1
+            else:
+                if self.egg_without_mama > 0:
+                    self.egg_without_mama -= 1
+        if self.egg_without_mama >= 4:
+            exit()
+        if self.egg_is_growing >= 9:
+            self.egg_flag = 0
+            self.egg_is_growing = 0
+            self.egg_without_mama = 0
+
+
 camera = Camera()
 
 pygame.init()
 
-egg_flag = 1
-
 screen = pygame.display.set_mode(size)
 running = True
-
-# bird1 = pygame.transform.scale(bird1, (90, 70))
 
 sprite_bird = pygame.sprite.Group()
 Bird(sprite_bird)
@@ -307,6 +351,9 @@ BackGround(sprite_ground)
 sprite_nest = pygame.sprite.Group()
 Nest(sprite_nest)
 
+sprite_eggs = pygame.sprite.Group()
+Egg(sprite_eggs)
+
 all_sprites = pygame.sprite.Group(sprite_ground, sprite_foods, sprite_sticks)
 statistic = Statistic()
 
@@ -319,12 +366,10 @@ moved = [0, 0]
 flying_x = 0
 flying_y = 0
 
-we_have_egg_flag = 0
-we_have_nest_flag = 0
 
 while running:  # главный игровой цикл
     screen.fill(pygame.Color("white"))
-    all_sprites = pygame.sprite.Group(sprite_ground, sprite_foods, sprite_sticks, sprite_nest)
+    all_sprites = pygame.sprite.Group(sprite_eggs, sprite_ground, sprite_foods, sprite_sticks, sprite_nest)
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             running = False
@@ -363,12 +408,18 @@ while running:  # главный игровой цикл
                     sprite.fly(-5, 0)
                 flying_y += 3
             if event.key == pygame.K_SPACE:
-                if statistic.get_stick_count() >= 10:
+                if statistic.get_stick_count() >= 10 and not we_have_nest_flag:
                     statistic.get_stick_count(-10)
                     we_have_nest_flag = 1
                     for sprite in sprite_nest:
                         for sprite_b in sprite_bird:
                             sprite.set_nest(sprite_b.get_pos())
+                    continue
+                for nest in sprite_nest:
+                    if nest.bird_on_egg() and we_have_nest_flag and not we_have_egg_flag:
+                        we_have_egg_flag = 1
+                        for sprite in sprite_eggs:
+                            sprite.set_egg(nest.get_pos())
 
     for sprite in sprite_bird:
         camera.update(sprite)
@@ -393,8 +444,17 @@ while running:  # главный игровой цикл
 
     sprite_ground.draw(screen)
 
+    if we_have_egg_flag:
+        for egg in sprite_eggs:
+            if not egg.egg_flag:
+                we_have_nest_flag = 0
+                we_have_egg_flag = 0
+
     if we_have_nest_flag:
         sprite_nest.draw(screen)
+
+    if we_have_egg_flag:
+        sprite_eggs.draw(screen)
 
     sprite_foods.draw(screen)
 
@@ -409,6 +469,9 @@ while running:  # главный игровой цикл
     moved[0] += flying_y
 
     if time % 150 == 0:
+        if we_have_egg_flag:
+            for egg in sprite_eggs:
+                egg.grow()
         statistic.less_static()
 
     for i in range(len(moved)):
